@@ -1,7 +1,21 @@
 import pandas as pd
 import sys
 
-def prep_pQTL_data(protname,dataset,pQTL_path):
+def prep_GWAS_data(gwas_path,protname,dataset,clumped_snps=None,output_suffix=''):
+    metal = pd.read_table(gwas_path)
+
+    metal = metal[['CHR','Pos','RSID','Allele1','Allele2','P','Effect','StdErr','Freq1','N','MarkerName_HG38']]
+    metal.columns = ['chr','pos','rsid','eAllele','oAllele','P','Effect','SE','AF','N','snpid']
+    metal['eAllele'] = metal['eAllele'].str.upper()
+    metal['oAllele'] = metal['oAllele'].str.upper()
+
+    if type(clumped_snps) == str:
+        snps = pd.read_table(clumped_snps)
+        snps['snpid'] = 'chr'+snps['CHR'].astype(str)+':'+snps['BP'].astype(str)
+        metal = metal[metal['snpid'].isin(snps['snpid'])]
+    metal.drop_duplicates().sort_values('rsid').drop(columns=['snpid']).to_csv(f'{protname}_{dataset}_{output_suffix}_GWAS_harmonized.txt',sep='\t',index=None)
+
+def prep_pQTL_data(protname,dataset,pQTL_path,clumped_snps=None,output_suffix=''):
     gwas = pd.read_table("IGFBP2_decode_GWAS_harmonized.txt")
     pqtl = pd.read_table(pQTL_path)
     
@@ -34,4 +48,10 @@ def prep_pQTL_data(protname,dataset,pQTL_path):
         print(f"ERROR: only decode or ukb pQTL dataset names are supported")
 
     pqtl.columns = ['chr','pos','rsid','eAllele','oAllele','P','Effect','SE','AF','N']
-    pqtl.sort_values('rsid').to_csv(f'{protname}_{dataset}_pQTL_harmonized.txt',sep='\t',index=None)
+    if type(clumped_snps) == str:
+        snps = pd.read_table(clumped_snps)
+        snps['snpid'] = snps['CHR'].astype(str)+':'+snps['BP'].astype(str)
+        pqtl['snpid'] = pqtl['chr'].astype(str)+':'+pqtl['pos'].astype(str)
+        pqtl = pqtl[pqtl['snpid'].isin(snps['snpid'])]
+        pqtl = pqtl.drop(columns=['snpid'])
+    pqtl.sort_values('rsid').to_csv(f'{protname}_{dataset}_{output_suffix}_pQTL_harmonized.txt',sep='\t',index=None)
