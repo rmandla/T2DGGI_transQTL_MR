@@ -1,5 +1,64 @@
 import pandas as pd
-import sys
+import sys, subprocess, argparse
+
+def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plink',snps=None):
+    sst_df = pd.read_table(sst)
+    if exposure.lower() == 'pqtl':
+        if dataset.lower() == 'ukb':
+            chrom_col = 'CHROM'
+            bp_col = 'GENPOS'
+            logp_col = 'LOG10P'
+            p_col = None
+            a1_col = 'ALLELE0'
+            a2_col = 'ALLELE1'
+        elif dataset.lower() == 'decode':
+            sst_df['CHR'] = sst_df['Chrom'].str.split('chr',expand=True)[1].astype(int)
+            chrom_col = 'CHR'
+            bp_col = 'Pos'
+            p_col = 'Pval'
+            logp_col = None
+            a1_col = 'effectAllele'
+            a2_col = 'otherAllele'
+        else:
+            raise(f'ERROR: {dataset} not recognized')
+        if output_header != '':
+            output_header += '.'
+        output = f'{output_header}{exposure}.{dataset}'
+    elif exposure.lower() == 'gwas':
+        chrom_col = 'CHR'
+        bp_col = 'Pos'
+        p_col = 'P'
+        logp_col = None
+        a1_col = 'Allele1'
+        a2_col = 'Allele2'
+        if output_header != '':
+            output_header += '.'
+        output = f'{output_header}{exposure}.T2DGGI'
+    else:
+        raise(f'ERROR: {exposure} not recognized')
+
+    if type(snps) == str:
+        snps_df = pd.read_table(snps,header=None)
+        sst_df = sst_df[sst_df['MarkerName'].isin(snps_df[0])]
+
+    sst_df['CHR'] = chrom
+    sst_df['BP'] = sst_df[bp_col]
+    if type(logp_col) == str:
+        sst_df['P'] = 10**-sst_df[logp_col]
+    else:
+        sst_df['P'] = sst_df[p_col]
+    sst_df['SNP1'] = sst_df['CHR'].astype(str)+':'+sst_df['BP'].astype(str)+':'+sst_df[a1_col]+':'+sst_df[a2_col]
+    sst_df['SNP2'] = sst_df['CHR'].astype(str)+':'+sst_df['BP'].astype(str)+':'+sst_df[a2_col]+':'+sst_df[a1_col]
+    sst_df1 = sst_df.copy()
+    sst_df1['SNP'] = sst_df1['SNP1']
+    sst_df2 = sst_df.copy()
+    sst_df2['SNP'] = sst_df2['SNP2']
+    sst_df = pd.concat([sst_df1,sst_df2])
+    for chrom in range(1,23):
+        tsst_df = sst_df[sst_df['CHR']==chrom]
+        tsst_df[['CHR','SNP','BP','P']].to_csv('temp_forclump.txt',sep='\t',index=None)
+        ref_file = f'{ref_path}/EUR_1KG_chr{chrom}'
+        subprocess.run(f'{plink} --bfile {ref_file} --clump temp_forclump.txt --clump-p1 5e-8 --clump-kb 10000 --clump-r2 0.001 --out {output}.chr{chrom}')
 
 def prep_GWAS_data(gwas_path,protname,dataset,clumped_snps=None,output_suffix=''):
     metal = pd.read_table(gwas_path)
@@ -18,7 +77,7 @@ def prep_GWAS_data(gwas_path,protname,dataset,clumped_snps=None,output_suffix=''
 def prep_pQTL_data(protname,dataset,pQTL_path,clumped_snps=None,output_suffix=''):
     gwas = pd.read_table("IGFBP2_decode_GWAS_harmonized.txt")
     pqtl = pd.read_table(pQTL_path)
-    
+
     dataset = dataset.lower()
     if dataset == 'decode':
         pqtl = pqtl[pqtl["rsids"].isin(gwas['rsid'])]
@@ -55,3 +114,34 @@ def prep_pQTL_data(protname,dataset,pQTL_path,clumped_snps=None,output_suffix=''
         pqtl = pqtl[pqtl['snpid'].isin(snps['snpid'])]
         pqtl = pqtl.drop(columns=['snpid'])
     pqtl.sort_values('rsid').to_csv(f'{protname}_{dataset}_{output_suffix}_pQTL_harmonized.txt',sep='\t',index=None)
+
+def main():
+    parser = argparse.ArgumentParser()
+    #subparser = parser.add_subparsers()
+
+    subparsers = parser.add_subparsers(title='Commands', dest='command')
+    # use dispatch pattern to invoke method with same name
+
+    #parser.add_argument('pull_ld')
+    clump = subparsers.add_parser('clump')
+    clump.add_argument("-s", "--sst",dest='sst')
+    clump.add_argument('-r','--ref_path',dest='ref_path')
+    clump.add_argument('-o','--output_header',dest='output_header',default='')
+    clump.add_argument('-e','--exposure',dest='exposure')
+    clump.add_argument('-d','--dataset',dest='dataset',default=None)
+    clump.add_argument('-p','--plink_path',dest='plink_path',default='plink')
+    clump.add_argument('-snps','--snps',dest='snps',default=None)
+
+    #parser.add_argument('-c','--compare',dest='compare')
+    mr = subparsers.add_parser('run_mr')
+    compare.add_argument("-rv", "--reference_variants",dest='ref_assoc_variants',default='variants.txt')
+    compare.add_argument('-a', '--association_file',dest='new_assoc_path')
+    compare.add_argument('-as','--association_sep',dest='assoc_sep',default=',')
+    compare.add_argument('-ac','--association_chrom',dest='assoc_chrom_colname',default='CHR')
+    compare.add_argument('-ap','--association_startpos',dest='assoc_start_colname',default='POS')
+    compare.add_argument('-ai','--association_id',dest='assoc_id_colname',default='ID')
+    compare.add_argument('-ae','--association_endpos',dest='assoc_end_colname')
+    compare.add_argument('-li','--ld_path',dest='ld_path')
+    compare.add_argument('-r2','--r2',dest='r2_cutoff',default=0.8)
+    compare.add_argument('-anc','--ancestries',dest='ancs',default='EUR')
+    compare.add_argument("-o", "--output",dest = "output")
