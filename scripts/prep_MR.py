@@ -1,5 +1,5 @@
 import pandas as pd
-import sys, subprocess, argparse
+import sys, subprocess, argparse, os
 
 def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plink',snps=None):
     sst_df = pd.read_table(sst)
