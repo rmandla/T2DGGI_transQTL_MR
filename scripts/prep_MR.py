@@ -56,19 +56,22 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
     sst_df2 = sst_df.copy()
     sst_df2['SNP'] = sst_df2['SNP2']
     sst_df = pd.concat([sst_df1,sst_df2])
+    if '/' in output:
+        output_dir = output.sep('/')[:-1].join('/')
+        output_file = output.sep('/')[-1]
+    else:
+        output_dir = './'
+        output_file = output
+    if output+".ALL.clumped" in os.listdir(output_dir):
+        subprocess.run(f'rm {output}.ALL.clumped',shell=True,check=True)
     for chrom in range(1,23):
         tsst_df = sst_df[sst_df['CHR']==chrom]
         tsst_df[['CHR','SNP','BP','P']].to_csv('temp_forclump.txt',sep='\t',index=None)
         ref_file = f'{ref_path}/EUR_1KG_chr{chrom}'
         subprocess.run(f'{plink} --bfile {ref_file} --clump temp_forclump.txt --clump-p1 5e-8 --clump-kb 10000 --clump-r2 0.001 --out {output}.chr{chrom}',shell=True,check=True)
-        if '/' in output:
-            output_dir = output.sep('/')[:-1].join('/')
-            output_file = output.sep('/')[-1]
-        else:
-            output_dir = './'
-            output_file = output
+
         if f'{output_file}.chr{chrom}.clumped' in os.listdir(output_dir):
-            subprocess.run("tail -n+2 "+output+".chr"+chrom+".clumped | awk '{print $3}' | grep -v '^$' >> "+output+".ALL.clumped",shell=True,check=True)
+            subprocess.run("tail -n+2 "+output+".chr"+str(chrom)+".clumped | awk '{print $3}' | grep -v '^$' >> "+output+".ALL.clumped",shell=True,check=True)
 
 def prep_GWAS_data(gwas_path,protname,dataset,output_header,clumped_snps=None):
     metal = pd.read_table(gwas_path)
