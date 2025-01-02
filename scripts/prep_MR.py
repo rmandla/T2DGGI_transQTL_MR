@@ -47,8 +47,8 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         sst_df['P'] = 10**-sst_df[logp_col]
     else:
         sst_df['P'] = sst_df[p_col]
-    sst_df['SNP1'] = sst_df['CHR'].astype(str)+':'+sst_df['BP'].astype(str)+':'+sst_df[a1_col]+':'+sst_df[a2_col]
-    sst_df['SNP2'] = sst_df['CHR'].astype(str)+':'+sst_df['BP'].astype(str)+':'+sst_df[a2_col]+':'+sst_df[a1_col]
+    sst_df['SNP1'] = sst_df['CHR'].astype(str)+':'+sst_df['BP'].astype(str)+':'+sst_df[a1_col].str.upper()+':'+sst_df[a2_col].str.upper()
+    sst_df['SNP2'] = sst_df['CHR'].astype(str)+':'+sst_df['BP'].astype(str)+':'+sst_df[a2_col].str.upper()+':'+sst_df[a1_col].str.upper()
     sst_df1 = sst_df.copy()
     sst_df1['SNP'] = sst_df1['SNP1']
     sst_df2 = sst_df.copy()
