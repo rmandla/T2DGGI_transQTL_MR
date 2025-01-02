@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import sys, subprocess, argparse, os
 
 def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plink',snps=None,pthresh=5e-8):
@@ -164,7 +163,7 @@ def main():
     args = parser.parse_args()
     if args.command == 'clump':
         print('Clumping variants')
-        run_clumping(sst=args.sst,ref_path=args.ref_path,exposure=args.exposure,output_header=args.output_header,dataset=args.dataset,plink=args.plink_path,snps=args.snps,pthresh=np.float(args.pthresh))
+        run_clumping(sst=args.sst,ref_path=args.ref_path,exposure=args.exposure,output_header=args.output_header,dataset=args.dataset,plink=args.plink_path,snps=args.snps,pthresh=float(args.pthresh))
     elif args.command == 'run_mr':
         print('Running MR')
         prep_GWAS_data(gwas_path=args.gwas_path,protname=args.protname,dataset=args.dataset,output_header=args.output_header,clumped_snps=args.clumped_snps)
