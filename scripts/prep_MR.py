@@ -1,7 +1,7 @@
 import pandas as pd
 import sys, subprocess, argparse, os
 
-def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plink',snps=None):
+def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plink',snps=None,pthresh=5e-8):
     sst_df = pd.read_table(sst)
     if exposure.lower() == 'pqtl':
         if dataset.lower() == 'ukb':
@@ -68,10 +68,13 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         tsst_df = sst_df[sst_df['CHR']==chrom]
         tsst_df[['CHR','SNP','BP','P']].to_csv('temp_forclump.txt',sep='\t',index=None)
         ref_file = f'{ref_path}/EUR_1KG_chr{chrom}'
-        subprocess.run(f'{plink} --bfile {ref_file} --clump temp_forclump.txt --clump-p1 5e-8 --clump-kb 10000 --clump-r2 0.001 --out {output}.chr{chrom}',shell=True,check=True)
+        subprocess.run(f'{plink} --bfile {ref_file} --clump temp_forclump.txt --clump-p1 {pthresh} --clump-kb 10000 --clump-r2 0.001 --out {output}.chr{chrom}',shell=True,check=True)
 
         if f'{output_file}.chr{chrom}.clumped' in os.listdir(output_dir):
-            subprocess.run("tail -n+2 "+output+".chr"+str(chrom)+".clumped | awk '{print $3}' | grep -v '^$' >> "+output+".ALL.clumped",shell=True,check=True)
+            if output+".ALL.clumped" not in os.listdir(output_dir):
+                subprocess.run("cat "+output+".chr"+str(chrom)+".clumped | awk '{print $1,$2,$3,$4}' OFS='\t' | grep -v '^$' >> "+output+".ALL.clumped",shell=True,check=True)
+            else:
+                subprocess.run("tail -n+2 "+output+".chr"+str(chrom)+".clumped | awk '{print $1,$2,$3,$4}' OFS='\t' | grep -v '^$' >> "+output+".ALL.clumped",shell=True,check=True)
 
 def prep_GWAS_data(gwas_path,protname,dataset,output_header,clumped_snps=None):
     metal = pd.read_table(gwas_path)
@@ -143,6 +146,7 @@ def main():
     clump.add_argument('-e','--exposure',dest='exposure')
     clump.add_argument('-d','--dataset',dest='dataset',default=None)
     clump.add_argument('-p','--plink_path',dest='plink_path',default='plink')
+    clump.add_argument('-pt','--p-thresh',dest='pthresh',default=5e-8)
     clump.add_argument('-snps','--snps',dest='snps',default=None)
 
     #parser.add_argument('-c','--compare',dest='compare')
@@ -159,7 +163,7 @@ def main():
     args = parser.parse_args()
     if args.command == 'clump':
         print('Clumping variants')
-        run_clumping(sst=args.sst,ref_path=args.ref_path,exposure=args.exposure,output_header=args.output_header,dataset=args.dataset,plink=args.plink_path,snps=args.snps)
+        run_clumping(sst=args.sst,ref_path=args.ref_path,exposure=args.exposure,output_header=args.output_header,dataset=args.dataset,plink=args.plink_path,snps=args.snps,pthresh=np.float(args.pthresh))
     elif args.command == 'run_mr':
         print('Running MR')
         prep_GWAS_data(gwas_path=args.gwas_path,protname=args.protname,dataset=args.dataset,output_header=args.output_header,clumped_snps=args.clumped_snps)
