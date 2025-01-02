@@ -12,7 +12,7 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
             a1_col = 'ALLELE0'
             a2_col = 'ALLELE1'
         elif dataset.lower() == 'decode':
-            sst_df['CHR'] = sst_df['Chrom'].str.split('chr',expand=True)[1].astype(int)
+            sst_df['CHR'] = sst_df['Chrom'].str.split('chr',expand=True)[1]
             chrom_col = 'CHR'
             bp_col = 'Pos'
             p_col = 'Pval'
@@ -42,6 +42,8 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         sst_df = sst_df[sst_df['MarkerName'].isin(snps_df[0])]
 
     sst_df['CHR'] = sst_df[chrom_col]
+    sst_df = sst_df[sst_df['CHR'].isin([str(i) for i in range(1,23)]+[i for i in range(1,23)])]
+    sst_df['CHR'] = sst_df['CHR'].astype(int)
     sst_df['BP'] = sst_df[bp_col]
     if type(logp_col) == str:
         sst_df['P'] = 10**-sst_df[logp_col]
