@@ -41,7 +41,7 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         snps_df = pd.read_table(snps,header=None)
         sst_df = sst_df[sst_df['MarkerName'].isin(snps_df[0])]
 
-    sst_df['CHR'] = chrom
+    sst_df['CHR'] = sst_df[chrom_col]
     sst_df['BP'] = sst_df[bp_col]
     if type(logp_col) == str:
         sst_df['P'] = 10**-sst_df[logp_col]
