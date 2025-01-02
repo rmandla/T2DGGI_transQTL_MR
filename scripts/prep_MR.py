@@ -65,7 +65,7 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         else:
             output_dir = './'
             output_file = output
-        if f'{output_file}.chr{chrom}.clumped in os.listdir(output_dir):
+        if f'{output_file}.chr{chrom}.clumped' in os.listdir(output_dir):
             subprocess.run(f"tail -n+2 {output}.chr{chrom}.clumped | awk '{print $3}' | grep -v '^$' >> {output}.ALL.clumped",shell=True,check=True)
 
 def prep_GWAS_data(gwas_path,protname,dataset,output_header,clumped_snps=None):
