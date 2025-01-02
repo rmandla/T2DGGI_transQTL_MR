@@ -147,7 +147,7 @@ def main():
     args = parser.parse_args()
     if args.command == 'clump':
         print('Clumping variants')
-        run_clumping(sst=args.sst,ref_path=args.ref_path,exposure=args.exposure,output_header=args.output_header,dataset=args.dataset,plink=args.plink,snps=args.snps)
+        run_clumping(sst=args.sst,ref_path=args.ref_path,exposure=args.exposure,output_header=args.output_header,dataset=args.dataset,plink=args.plink_path,snps=args.snps)
     elif args.command == 'run_mr':
         print('Running MR')
         prep_GWAS_data(gwas_path=args.gwas_path,protname=args.protname,dataset=args.dataset,output_header=args.output_header,clumped_snps=args.clumped_snps)
