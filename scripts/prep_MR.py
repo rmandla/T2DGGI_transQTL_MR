@@ -58,9 +58,10 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         tsst_df = sst_df[sst_df['CHR']==chrom]
         tsst_df[['CHR','SNP','BP','P']].to_csv('temp_forclump.txt',sep='\t',index=None)
         ref_file = f'{ref_path}/EUR_1KG_chr{chrom}'
-        subprocess.run(f'{plink} --bfile {ref_file} --clump temp_forclump.txt --clump-p1 5e-8 --clump-kb 10000 --clump-r2 0.001 --out {output}.chr{chrom}')
+        subprocess.run(f'{plink} --bfile {ref_file} --clump temp_forclump.txt --clump-p1 5e-8 --clump-kb 10000 --clump-r2 0.001 --out {output}.chr{chrom}',shell=True,check=True)
+    subprocess.run(f'cat {output}.chr*.clumped > {output}.ALL.clumped',shell=True,check=True)
 
-def prep_GWAS_data(gwas_path,protname,dataset,clumped_snps=None,output_suffix=''):
+def prep_GWAS_data(gwas_path,protname,dataset,output_header,clumped_snps=None):
     metal = pd.read_table(gwas_path)
 
     metal = metal[['CHR','Pos','RSID','Allele1','Allele2','P','Effect','StdErr','Freq1','N','MarkerName_HG38']]
@@ -72,10 +73,10 @@ def prep_GWAS_data(gwas_path,protname,dataset,clumped_snps=None,output_suffix=''
         snps = pd.read_table(clumped_snps)
         snps['snpid'] = 'chr'+snps['CHR'].astype(str)+':'+snps['BP'].astype(str)
         metal = metal[metal['snpid'].isin(snps['snpid'])]
-    metal.drop_duplicates().sort_values('rsid').drop(columns=['snpid']).to_csv(f'{protname}_{dataset}_{output_suffix}_GWAS_harmonized.txt',sep='\t',index=None)
+    metal.drop_duplicates().sort_values('rsid').drop(columns=['snpid']).to_csv(f'{output_header}_{protname}_{dataset}_GWAS_harmonized.txt',sep='\t',index=None)
 
-def prep_pQTL_data(protname,dataset,pQTL_path,clumped_snps=None,output_suffix=''):
-    gwas = pd.read_table("IGFBP2_decode_GWAS_harmonized.txt")
+def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
+    gwas = pd.read_table(f'{output_header}_{protname}_{dataset}_GWAS_harmonized.txt')
     pqtl = pd.read_table(pQTL_path)
 
     dataset = dataset.lower()
@@ -113,7 +114,7 @@ def prep_pQTL_data(protname,dataset,pQTL_path,clumped_snps=None,output_suffix=''
         pqtl['snpid'] = pqtl['chr'].astype(str)+':'+pqtl['pos'].astype(str)
         pqtl = pqtl[pqtl['snpid'].isin(snps['snpid'])]
         pqtl = pqtl.drop(columns=['snpid'])
-    pqtl.sort_values('rsid').to_csv(f'{protname}_{dataset}_{output_suffix}_pQTL_harmonized.txt',sep='\t',index=None)
+    pqtl.sort_values('rsid').to_csv(f'{output_header}_{protname}_{dataset}_pQTL_harmonized.txt',sep='\t',index=None)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -134,14 +135,27 @@ def main():
 
     #parser.add_argument('-c','--compare',dest='compare')
     mr = subparsers.add_parser('run_mr')
-    compare.add_argument("-rv", "--reference_variants",dest='ref_assoc_variants',default='variants.txt')
-    compare.add_argument('-a', '--association_file',dest='new_assoc_path')
-    compare.add_argument('-as','--association_sep',dest='assoc_sep',default=',')
-    compare.add_argument('-ac','--association_chrom',dest='assoc_chrom_colname',default='CHR')
-    compare.add_argument('-ap','--association_startpos',dest='assoc_start_colname',default='POS')
-    compare.add_argument('-ai','--association_id',dest='assoc_id_colname',default='ID')
-    compare.add_argument('-ae','--association_endpos',dest='assoc_end_colname')
-    compare.add_argument('-li','--ld_path',dest='ld_path')
-    compare.add_argument('-r2','--r2',dest='r2_cutoff',default=0.8)
-    compare.add_argument('-anc','--ancestries',dest='ancs',default='EUR')
-    compare.add_argument("-o", "--output",dest = "output")
+    mr.add_argument('-s','--sst',dest='gwas_path')
+    mr.add_argument("-p", "--protein_name",dest='protname')
+    mr.add_argument('-d', '--dataset',dest='dataset')
+    mr.add_argument('-ex','--exposure',dest='exposure')
+    mr.add_argument('-oc','--outcome',dest='outcome')
+    mr.add_argument('-dpath','--dataset_path',dest='pQTL_path')
+    mr.add_argument('-cs','--clumped_snps',dest='clumped_snps',default=None)
+    mr.add_argument("-o", "--output",dest = "output_header")
+
+    args = parser.parse_args()
+    if args.command == 'clump':
+        print('Clumping variants')
+        run_clumping(sst=args.sst,ref_path=args.ref_path,exposure=args.exposure,output_header=args.output_header,dataset=args.dataset,plink=args.plink,snps=args.snps)
+    elif args.command == 'run_mr':
+        print('Running MR')
+        prep_GWAS_data(gwas_path=args.gwas_path,protname=args.protname,dataset=args.dataset,output_header=args.output_header,clumped_snps=args.clumped_snps)
+        prep_pQTL_data(protname=args.protname,dataset=args.dataset,pQTL_path=args.pQTL_path,output_header=args.output_header,clumped_snps=args.clumped_snps)
+
+    else:
+        # If an unknown command is provided, show the help message
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()
