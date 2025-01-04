@@ -74,14 +74,12 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         if f'{output_file}.chr{chrom}.clumped' in os.listdir(output_dir):
             output_files.append(f'{output_dir}{output_file}.chr{chrom}.clumped')
     if len(output_files)>0:
-        print(output_files)
         for of in output_files:
-            print(of)
             tdf = pd.read_table(of,delim_whitespace=True)[['CHR','SNP','BP']]
             if of == output_files[0]:
                 ofs = tdf.copy()
             else:
-                of = pd.concat([of,tdf])
+                ofs = pd.concat([ofs,tdf])
         of.to_csv(f'{output_dir}{output_file}.ALL.clumped',sep='\t',index=None)
 
 def prep_GWAS_data(gwas_path,protname,dataset,output_header,clumped_snps=None):
