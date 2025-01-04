@@ -80,7 +80,7 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
                 ofs = tdf.copy()
             else:
                 ofs = pd.concat([ofs,tdf])
-        of.to_csv(f'{output_dir}{output_file}.ALL.clumped',sep='\t',index=None)
+        ofs.to_csv(f'{output_dir}{output_file}.ALL.clumped',sep='\t',index=None)
 
 def prep_GWAS_data(gwas_path,protname,dataset,output_header,clumped_snps=None):
     metal = pd.read_table(gwas_path)
