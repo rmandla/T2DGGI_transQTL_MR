@@ -64,6 +64,7 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         output_file = output
     if output+".ALL.clumped" in os.listdir(output_dir):
         subprocess.run(f'rm {output}.ALL.clumped',shell=True,check=True)
+    output_files = []
     for chrom in range(1,23):
         tsst_df = sst_df[sst_df['CHR']==chrom]
         tsst_df[['CHR','SNP','BP','P']].to_csv('temp_forclump.txt',sep='\t',index=None)
@@ -71,10 +72,15 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         subprocess.run(f'{plink} --bfile {ref_file} --clump temp_forclump.txt --clump-p1 {pthresh} --clump-kb 10000 --clump-r2 0.001 --out {output}.chr{chrom}',shell=True,check=True)
 
         if f'{output_file}.chr{chrom}.clumped' in os.listdir(output_dir):
-            if output+".ALL.clumped" not in os.listdir(output_dir):
-                subprocess.run("cat "+output+".chr"+str(chrom)+".clumped | awk '{print $1,$2,$3,$4}' OFS='\t' | grep -v '^$' >> "+output+".ALL.clumped",shell=True,check=True)
+            output_files += f'{output_dir}{output_file}.chr{chrom}.clumped'
+    if len(output_files)>0:
+        for of in output_files:
+            tdf = pd.read_table(of,delim_whitespace=True)[['CHR','SNP','BP']]
+            if of == output_files[0]:
+                ofs = tdf.copy()
             else:
-                subprocess.run("tail -n+2 "+output+".chr"+str(chrom)+".clumped | awk '{print $1,$2,$3,$4}' OFS='\t' | grep -v '^$' >> "+output+".ALL.clumped",shell=True,check=True)
+                of = pd.concat([of,tdf])
+        of.to_csv(f'{output_dir}{output_file}.ALL.clumped',sep='\t',index=None)
 
 def prep_GWAS_data(gwas_path,protname,dataset,output_header,clumped_snps=None):
     metal = pd.read_table(gwas_path)
