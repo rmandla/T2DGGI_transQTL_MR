@@ -74,7 +74,9 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         if f'{output_file}.chr{chrom}.clumped' in os.listdir(output_dir):
             output_files += f'{output_dir}{output_file}.chr{chrom}.clumped'
     if len(output_files)>0:
+        print(output_files)
         for of in output_files:
+            print(of)
             tdf = pd.read_table(of,delim_whitespace=True)[['CHR','SNP','BP']]
             if of == output_files[0]:
                 ofs = tdf.copy()
