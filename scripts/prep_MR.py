@@ -103,7 +103,7 @@ def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
     dataset = dataset.lower()
     if dataset == 'decode':
         pqtl = pqtl[pqtl["rsids"].isin(gwas['rsid'])]
-        pqtl['chr'] = pqtl['Chrom'].str.replace('chr','')
+        pqtl['CHR'] = pqtl['Chrom'].str.replace('chr','')
 
         pqtl = pqtl[['chr','Pos','rsids','effectAllele','otherAllele','Pval','Beta','SE','ImpMAF','N']]
     elif dataset == 'ukb':
@@ -130,7 +130,7 @@ def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
 
     pqtl.columns = ['chr','pos','rsid','eAllele','oAllele','P','Effect','SE','AF','N']
     if type(clumped_snps) == str:
-        snps = pd.read_table(clumped_snps)
+        snps = pd.read_table(clumped_snps,delim_whitespace=True)
         snps['snpid'] = snps['CHR'].astype(str)+':'+snps['BP'].astype(str)
         pqtl['snpid'] = pqtl['chr'].astype(str)+':'+pqtl['pos'].astype(str)
         pqtl = pqtl[pqtl['snpid'].isin(snps['snpid'])]
