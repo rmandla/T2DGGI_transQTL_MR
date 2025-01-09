@@ -103,7 +103,7 @@ def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
     dataset = dataset.lower()
     if dataset == 'decode':
         pqtl = pqtl[pqtl["rsids"].isin(gwas['rsid'])]
-        pqtl['CHR'] = pqtl['Chrom'].str.replace('chr','')
+        pqtl['chr'] = pqtl['Chrom'].str.replace('chr','')
 
         pqtl = pqtl[['chr','Pos','rsids','effectAllele','otherAllele','Pval','Beta','SE','ImpMAF','N']]
     elif dataset == 'ukb':
