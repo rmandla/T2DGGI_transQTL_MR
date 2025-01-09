@@ -91,7 +91,7 @@ def prep_GWAS_data(gwas_path,protname,dataset,output_header,clumped_snps=None):
     metal['oAllele'] = metal['oAllele'].str.upper()
 
     if type(clumped_snps) == str:
-        snps = pd.read_table(clumped_snps)
+        snps = pd.read_table(clumped_snps,delim_whitespace=True)
         snps['snpid'] = 'chr'+snps['CHR'].astype(str)+':'+snps['BP'].astype(str)
         metal = metal[metal['snpid'].isin(snps['snpid'])]
     metal.drop_duplicates().sort_values('rsid').drop(columns=['snpid']).to_csv(f'{output_header}_{protname}_{dataset}_GWAS_harmonized.txt',sep='\t',index=None)
