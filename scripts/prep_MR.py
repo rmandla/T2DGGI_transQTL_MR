@@ -39,7 +39,12 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
 
     if type(snps) == str:
         snps_df = pd.read_table(snps,header=None)
-        sst_df = sst_df[sst_df['RSID'].isin(snps_df[0])]
+        if 'RSID' in sst_df.columns:
+            sst_df = sst_df[sst_df['RSID'].isin(snps_df[0])]
+        elif 'rsids' in sst_df.columns:
+            sst_df = sst_df[sst_df['rsids'].isin(snps_df[0])]
+        else:
+            raise(f'ERROR: RSID column not found in input file')
 
     sst_df['CHR'] = sst_df[chrom_col]
     sst_df = sst_df[sst_df['CHR'].isin([str(i) for i in range(1,23)]+[i for i in range(1,23)])]
