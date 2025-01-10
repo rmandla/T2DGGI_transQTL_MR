@@ -62,8 +62,7 @@ exp_dat_outcome <- steiger_filtering(exp_dat_outcome)
 exp_dat_outcome <- subset(exp_dat_outcome, steiger_dir & steiger_pval<0.05)
 print('Running with Fstat and Steiger filtering')
 filter_name = '_fstat_steig'
-}
-else {
+} else {
 print('Running without filtering')
 }
 
