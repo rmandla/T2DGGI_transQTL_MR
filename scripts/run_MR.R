@@ -118,7 +118,7 @@ tryCatch({
 
   # add global_rss, global_pval, distortion_indices, distortion_coef, distortion_pval
   mrpresso_df <- as.data.frame(mrpresso_res$`Main MR results`)
-  mrpresso_df %<>% mutate(#global_rss = mrpresso_res$`MR-PRESSO results`$`Global Test`$RSSobs,
+  mrpresso_df %<>% mutate(global_rss = mrpresso_res$`MR-PRESSO results`$`Global Test`$RSSobs,
     global_pval =  mrpresso_res$`MR-PRESSO results`$`Global Test`$Pvalue,
     distortion_indices = mrpresso_res$`MR-PRESSO results`$`Distortion Test`$`Outliers Indices`,
     distortion_coef = mrpresso_res$`MR-PRESSO results`$`Distortion Test`$`Distortion Coefficient`,
