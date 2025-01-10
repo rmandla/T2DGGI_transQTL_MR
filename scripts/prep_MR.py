@@ -95,6 +95,8 @@ def prep_GWAS_data(gwas_path,protname,dataset,output_header,clumped_snps=None):
         snps['snpid'] = 'chr'+snps['CHR'].astype(str)+':'+snps['BP'].astype(str)
         metal = metal[metal['snpid'].isin(snps['snpid'])]
     metal.drop_duplicates().sort_values('rsid').drop(columns=['snpid']).to_csv(f'{output_header}_{protname}_{dataset}_GWAS_harmonized.txt',sep='\t',index=None)
+    N = metal.sort_values('N',ascending=False)['N'].to_list()[0]
+    return(N)
 
 def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
     gwas = pd.read_table(f'{output_header}_{protname}_{dataset}_GWAS_harmonized.txt')
@@ -136,6 +138,8 @@ def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
         pqtl = pqtl[pqtl['snpid'].isin(snps['snpid'])]
         pqtl = pqtl.drop(columns=['snpid'])
     pqtl.sort_values('rsid').to_csv(f'{output_header}_{protname}_{dataset}_pQTL_harmonized.txt',sep='\t',index=None)
+    N = pqtl.sort_values('N',ascending=False)['N'].to_list()[0]
+    return(N)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -172,9 +176,22 @@ def main():
         run_clumping(sst=args.sst,ref_path=args.ref_path,exposure=args.exposure,output_header=args.output_header,dataset=args.dataset,plink=args.plink_path,snps=args.snps,pthresh=float(args.pthresh))
     elif args.command == 'run_mr':
         print('Running MR')
-        prep_GWAS_data(gwas_path=args.gwas_path,protname=args.protname,dataset=args.dataset,output_header=args.output_header,clumped_snps=args.clumped_snps)
-        prep_pQTL_data(protname=args.protname,dataset=args.dataset,pQTL_path=args.pQTL_path,output_header=args.output_header,clumped_snps=args.clumped_snps)
-
+        gwas_n = prep_GWAS_data(gwas_path=args.gwas_path,protname=args.protname,dataset=args.dataset,output_header=args.output_header,clumped_snps=args.clumped_snps)
+        pqtl_n = prep_pQTL_data(protname=args.protname,dataset=args.dataset,pQTL_path=args.pQTL_path,output_header=args.output_header,clumped_snps=args.clumped_snps)
+        exp = args.exposure.upper()
+        oc = args.outcome.upper()
+        if exp == 'GWAS' and oc == 'PQTL':
+            oc = 'pQTL'
+            N_outcome = pqtl_n
+            N_exposure = gwas_n
+        elif exp == 'PQTL' and oc == 'GWAS':
+            exp = 'pQTL'
+            N_outcome = gwas_n
+            N_exposure = pqtl_n
+        else:
+            raise('exposure and outcome must either be GWAS or PQTL')
+        for filter in ['fstat','steig','both']:
+            subprocess.run(f'Rscript run_MR.R {args.protname} {args.dataset} {exp} {out} {N_exposure} {N_outcome} {args.output_header} {filter}',shell=True,check=True)
     else:
         # If an unknown command is provided, show the help message
         parser.print_help()

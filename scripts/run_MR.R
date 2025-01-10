@@ -36,7 +36,7 @@ exp_dat <- read_exposure_data(filename = exp_path,
                               pval_col = 'P')
 
 # read the outcome
-formatted_outcome <- format_data(outcome_GWAS, snps = exp_dat$rsid, type="outcome", snp_col="rsid", beta_col="Effect", se_col = "SE", eaf_col = "AF", 
+formatted_outcome <- format_data(outcome_GWAS, snps = exp_dat$rsid, type="outcome", snp_col="rsid", beta_col="Effect", se_col = "SE", eaf_col = "AF",
                                  effect_allele_col = "eAllele", other_allele_col = "oAllele", pval_col = "P", chr_col = "chr", pos_col = "pos")
 # harmonize
 exp_dat_outcome <-harmonise_data(exposure_dat=exp_dat, outcome_dat=formatted_outcome)
@@ -69,39 +69,39 @@ print('Running without filtering')
 
 # mr result
 mr_results <- mr(exp_dat_outcome)
-mr_name <- paste0(output_dir, protname, ".",dataset,'.',direction,'.',filter_name,".mr.txt")
+mr_name <- paste0(output_dir, '_',protname, ".",dataset,'.',direction,'.',filter_name,".mr.txt")
 write.table(mr_results, file=mr_name, sep = '\t', quote = F)
 
 # odds ratio
 OR <- generate_odds_ratios(mr_results)
-OR_name <- paste0(output_dir, protname, ".",dataset,'.',direction,'.',filter_name,".or.txt")
+OR_name <- paste0(output_dir, '_',protname, ".",dataset,'.',direction,'.',filter_name,".or.txt")
 write.table(OR, file=OR_name, sep = '\t', quote = F, row.names = F)
 
 # scatter plot
-pdf_name <- paste0(output_dir, protname, ".",dataset,'.',direction,'.',filter_name,".scatter.pdf")
+pdf_name <- paste0(output_dir, '_',protname, ".",dataset,'.',direction,'.',filter_name,".scatter.pdf")
 pdf(pdf_name, width = 10)
 mr_scatter_plot(mr_results, exp_dat_outcome)[[1]] + xlim(0,1) + theme_minimal()
-dev.off() 
+dev.off()
 
 # horizontal pleiotropy
-tryCatch({ 
+tryCatch({
   pleio_res <- mr_pleiotropy_test(exp_dat_outcome)
-  pleio_name <- paste0(output_dir,protname, ".",dataset,'.',direction,'.',filter_name,".pleio.txt")
+  pleio_name <- paste0(output_dir,'_',protname, ".",dataset,'.',direction,'.',filter_name,".pleio.txt")
   write.table(pleio_res, file=pleio_name, sep = '\t', quote = F, row.names = F)
 }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 
 # hetero test
-tryCatch({ 
+tryCatch({
   hetero_res <- mr_heterogeneity(exp_dat_outcome)
   hetero_res$isquared <- abs(100*(hetero_res$Q - hetero_res$Q_df)/hetero_res$Q)  # I2 = 100%×(Q - df)/Q
-  hetero_name <- paste0(output_dir,protname, ".",dataset,'.',direction,'.',filter_name,".hetero.txt")
+  hetero_name <- paste0(output_dir,'_',protname, ".",dataset,'.',direction,'.',filter_name,".hetero.txt")
   write.table(hetero_res, file=hetero_name, sep = '\t', quote = F, row.names = F)
 }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 
 # steiger
 print('RUNNING STEIGER')
 steiger <- directionality_test(exp_dat_outcome)
-steiger_name <- paste0(output_dir, protname, ".",dataset,'.',direction,'.',filter_name,".steiger.txt")
+steiger_name <- paste0(output_dir, '_',protname, ".",dataset,'.',direction,'.',filter_name,".steiger.txt")
 write.table(steiger, file=steiger_name, sep = '\t', quote = F, row.names = F)
 
 # MrPresso
@@ -115,7 +115,7 @@ tryCatch({
                             data = exp_dat_outcome,
                             NbDistribution = 1000,
                             SignifThreshold = 0.05)
-  mrpresso_name <- paste0(output_dir, "mrpresso/", protname, '.',dataset,'.',direction,'.',filter_name, ".mrpresso.txt")
+  mrpresso_name <- paste0(output_dir, '_', protname, '.',dataset,'.',direction,'.',filter_name, ".mrpresso.txt")
 
   # add global_rss, global_pval, distortion_indices, distortion_coef, distortion_pval
   mrpresso_df <- as.data.frame(mrpresso_res$`Main MR results`)
