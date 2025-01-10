@@ -193,7 +193,7 @@ def main():
         file_path = os.path.realpath(__file__)
         file_path = '/'.join(file_path.split('/')[:-1])
         for filter in ['fstat','steig','both']:
-            subprocess.run(f'Rscript {file_path}/run_MR.R {args.protname} {args.dataset} {exp} {oc} {N_exposure} {N_outcome} {args.output_header} {filter}',shell=True,check=True)
+            subprocess.run(f'Rscript {file_path}/run_MR.R {args.protname} {args.dataset} {exp} {oc} {N_exposure} {N_outcome} {args.output_header} {filter}',shell=True)
     else:
         # If an unknown command is provided, show the help message
         parser.print_help()
