@@ -191,7 +191,7 @@ def main():
         else:
             raise('exposure and outcome must either be GWAS or PQTL')
         for filter in ['fstat','steig','both']:
-            subprocess.run(f'Rscript run_MR.R {args.protname} {args.dataset} {exp} {out} {N_exposure} {N_outcome} {args.output_header} {filter}',shell=True,check=True)
+            subprocess.run(f'Rscript run_MR.R {args.protname} {args.dataset} {exp} {oc} {N_exposure} {N_outcome} {args.output_header} {filter}',shell=True,check=True)
     else:
         # If an unknown command is provided, show the help message
         parser.print_help()
