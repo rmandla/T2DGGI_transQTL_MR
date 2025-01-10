@@ -66,6 +66,7 @@ filter_name = '_fstat_steig'
 print('Running without filtering')
 }
 
+if (nrow(exp_dat_outcome)>1) {
 # mr result
 mr_results <- mr(exp_dat_outcome)
 mr_name <- paste0(output_dir, '_',protname, ".",dataset,'.',direction,'.',filter_name,".mr.txt")
@@ -126,3 +127,4 @@ tryCatch({
 
   write_tsv(mrpresso_df, file =  mrpresso_name)
 }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+}
