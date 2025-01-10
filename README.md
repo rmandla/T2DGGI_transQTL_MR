@@ -24,7 +24,7 @@ This repository contains pipelines used to run MR for the T2DGGI GWAS summary st
 
 #### Data preparation
 
-**Run clumping of imput GWAS summary statistics**
+**Run clumping of input GWAS summary statistics**
 
 ```
 python T2DGGI_transQTL_MR/scripts/prep_MR.py clump \
