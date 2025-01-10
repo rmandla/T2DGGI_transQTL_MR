@@ -20,6 +20,9 @@ This repository contains pipelines used to run MR for the T2DGGI GWAS summary st
 
 ## Tutorial
 
+1. [Genome-wide analyses](#Genome-wide analyses)
+2. [Colocalizing SNPs only](#Colocalizing SNPs only)
+
 ### Genome-wide analyses
 
 #### Data preparation
