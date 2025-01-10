@@ -20,10 +20,10 @@ This repository contains pipelines used to run MR for the T2DGGI GWAS summary st
 
 ## Tutorial
 
-1. [Genome-wide analyses](#Genome-wide analyses)
-2. [Colocalizing SNPs only](#Colocalizing SNPs only)
+1. [Genome-wide analyses](#gwa)
+2. [Colocalizing SNPs only](#cso)
 
-### Genome-wide analyses
+### Genome-wide analyses <a name="gwa"></a>
 
 #### Data preparation
 
@@ -90,7 +90,7 @@ The command for testing MR of pQTL -> GWAS is the same as for GWAS -> pQTL, exce
 
 This script works by first reformatting and subsetting the input summary statistics to only include the clumped SNPs and all information necessary for MR. Then, it runs an Rscript to get the MR output.
 
-### Colocalizing SNPs only
+### Colocalizing SNPs only <a name="cso"></a>
 
 #### Data preparation
 
