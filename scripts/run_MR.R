@@ -80,7 +80,21 @@ write.table(OR, file=OR_name, sep = '\t', quote = F, row.names = F)
 # scatter plot
 pdf_name <- paste0(output_dir, '_',protname, ".",dataset,'.',direction,'.',filter_name,".scatter.pdf")
 pdf(pdf_name, width = 10)
-mr_scatter_plot(mr_results, exp_dat_outcome)[[1]] + xlim(0,1) + theme_minimal()
+
+# Try plotting and ensure it doesn't throw an error
+tryCatch({
+  print("Generating scatter plot...")  # Debugging message
+  plot_result <- mr_scatter_plot(mr_results, exp_dat_outcome)[[1]] + xlim(0, 1) + theme_minimal()
+  print("Scatter plot generated successfully.")  # Debugging message
+
+  # Print the plot to the file
+  print(plot_result)
+
+}, error = function(e) {
+  cat("Error generating scatter plot: ", conditionMessage(e), "\n")
+})
+
+# Ensure the pdf device is properly closed
 dev.off()
 
 # horizontal pleiotropy
