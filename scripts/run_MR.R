@@ -18,8 +18,8 @@ filter = args[8]
 filter_name = ''
 
 direction = paste0(exposure_type,'_to_',outcome_type)
-outcome_path = paste0(protname,'_',dataset,'_',outcome_type,'_harmonized.txt')
-exp_path = paste0(protname,'_',dataset,'_',exposure_type,'_harmonized.txt')
+outcome_path = paste0(output_dir,'_',protname,'_',dataset,'_',outcome_type,'_harmonized.txt')
+exp_path = paste0(output_dir,'_',protname,'_',dataset,'_',exposure_type,'_harmonized.txt')
 outcome_GWAS <- vroom(outcome_path)
 
 #exposure
