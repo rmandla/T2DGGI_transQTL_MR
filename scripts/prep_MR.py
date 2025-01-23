@@ -70,7 +70,7 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
     sst_df2['SNP'] = sst_df2['SNP2']
     sst_df = pd.concat([sst_df1,sst_df2])
     if '/' in output:
-        output_dir = '/'.join(output.split('/')[:-1]+'/'
+        output_dir = '/'.join(output.split('/')[:-1])+'/'
         output_file = output.split('/')[-1]
     else:
         output_dir = './'
