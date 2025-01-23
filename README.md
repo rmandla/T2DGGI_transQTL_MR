@@ -124,6 +124,23 @@ python T2DGGI_transQTL_MR/scripts/prep_MR.py clump \
 
 Here, clumping is run against an input pQTL dataset, similar to above with the genome-wide analysis. An extra parameter `-snps` is added to specify a file containing SNPs to use for clumping, as above with the GWAS clumping. However, we additionally specify the p-value threshold for clumping using the `-pt` argument, to avoid PLINK removing index variants which are sub genome-wide significant in the pQTL dataset.
 
+*Caveat for using UKB data*
+
+Clumping on colocalizing SNPs only requires a `-snps` file, which is a list of SNP RSIDs to include in clumping. However, UKB pQTL summary statistics do not have RSID information included. Instead, RSID mappings must be provided using the `-rsids` argument. `-rsids` expects a tab-separated, two column file containing the columns `SNP` and `RSID`, where `SNP` contains SNP IDs in the format of CHR:POS:A1:A2 and `RSID` contains SNP IDs in RSID format. The script will then map the RSID to the corresponding SNP in the UKB dataset, accounting for allele flipping.
+
+```
+python T2DGGI_transQTL_MR/scripts/prep_MR.py clump \
+  -s ../MR/IGFBP2_P18065_OID20325_v1_Cardiometabolic.assoc \
+  -r /humgen/florezlab/users/rmandla/1000G \
+  -o /humgen/florezlab/users/rmandla/diamante-coloc/test_MR/TEST5_indexonly_IGFBP2 \
+  -e pQTL \
+  -d ukb \
+  -snps igfbp2_index-vars.txt \
+  -pt 0.05 \
+  -p plink \
+  -rsids ../MR/rsid_mappings.txt.gz
+```
+
 #### Running MR
 
 ##### Test for MR in the direction of GWAS -> pQTL
