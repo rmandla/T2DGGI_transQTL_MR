@@ -1,7 +1,7 @@
 import pandas as pd
 import sys, subprocess, argparse, os
 
-def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plink',snps=None,pthresh=5e-8):
+def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plink',snps=None,pthresh=5e-8,rsid_mappings=None):
     sst_df = pd.read_table(sst)
     if exposure.lower() == 'pqtl':
         if dataset.lower() == 'ukb':
@@ -43,8 +43,16 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
             sst_df = sst_df[sst_df['RSID'].isin(snps_df[0])]
         elif 'rsids' in sst_df.columns:
             sst_df = sst_df[sst_df['rsids'].isin(snps_df[0])]
+        elif type(rsid_mappings) == str:
+            rsid_mappings_df = pd.read_table(rsid_mappings)
+            sst_df['SNP_ID1'] = sst_df[chrom_col].astype(str)+':'+sst_df[bp_col].astype(str)+':'+sst_df[a1_col]+':'+sst_df[a2_col]
+            sst_df['SNP_ID2'] = sst_df[chrom_col].astype(str)+':'+sst_df[bp_col].astype(str)+':'+sst_df[a2_col]+':'+sst_df[a1_col]
+            temp_sst_df1 = sst_df.merge(rsid_mappings_df,left_on='SNP_ID1',right_on='SNP').drop(columns=['SNP_ID1'])
+            temp_sst_df2 = sst_df.merge(rsid_mappings_df,left_on='SNP_ID2',right_on='SNP').drop(columns=['SNP_ID2'])
+            sst_df = pd.concat([temp_sst_df1,temp_sst_df2])
+            sst_df = sst_df[sst_df['RSID'].isin(snps_df[0])]
         else:
-            raise(f'ERROR: RSID column not found in input file')
+            raise(f'ERROR: RSID column not found in input file and no alternative RSID mappings were provided')
 
     sst_df['CHR'] = sst_df[chrom_col]
     sst_df = sst_df[sst_df['CHR'].isin([str(i) for i in range(1,23)]+[i for i in range(1,23)])]
@@ -163,6 +171,7 @@ def main():
     clump.add_argument('-p','--plink_path',dest='plink_path',default='plink')
     clump.add_argument('-pt','--p-thresh',dest='pthresh',default=5e-8)
     clump.add_argument('-snps','--snps',dest='snps',default=None)
+    clump.add_argument('-rsids','--rsids',dest='rsid_mappings',default=None)
 
     #parser.add_argument('-c','--compare',dest='compare')
     mr = subparsers.add_parser('run_mr')
@@ -178,7 +187,7 @@ def main():
     args = parser.parse_args()
     if args.command == 'clump':
         print('Clumping variants')
-        run_clumping(sst=args.sst,ref_path=args.ref_path,exposure=args.exposure,output_header=args.output_header,dataset=args.dataset,plink=args.plink_path,snps=args.snps,pthresh=float(args.pthresh))
+        run_clumping(sst=args.sst,ref_path=args.ref_path,exposure=args.exposure,output_header=args.output_header,dataset=args.dataset,plink=args.plink_path,snps=args.snps,pthresh=float(args.pthresh),rsid_mappings=args.rsid_mappings)
     elif args.command == 'run_mr':
         print('Running MR')
         gwas_n = prep_GWAS_data(gwas_path=args.gwas_path,protname=args.protname,dataset=args.dataset,output_header=args.output_header,clumped_snps=args.clumped_snps)
