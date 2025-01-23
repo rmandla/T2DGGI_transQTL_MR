@@ -128,9 +128,9 @@ def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
         pqtl['SNP1'] = pqtl['CHROM'].astype(str)+':'+pqtl['GENPOS'].astype(str)+':'+pqtl['ALLELE1']+':'+pqtl['ALLELE0']
         pqtl['SNP2'] = pqtl['CHROM'].astype(str)+':'+pqtl['GENPOS'].astype(str)+':'+pqtl['ALLELE0']+':'+pqtl['ALLELE1']
 
-        pqtl1 = pqtl[pqtl['SNP1'].isin(metal['SNP'])]
+        pqtl1 = pqtl[pqtl['SNP1'].isin(gwas['SNP'])]
         pqtl1['SNP'] = pqtl['SNP1']
-        pqtl2 = pqtl[pqtl['SNP2'].isin(metal['SNP'])]
+        pqtl2 = pqtl[pqtl['SNP2'].isin(gwas['SNP'])]
         pqtl2['SNP'] = pqtl['SNP2']
 
         pqtl1 = pqtl1.merge(rsid,left_on='SNP1',right_on='SNP')
