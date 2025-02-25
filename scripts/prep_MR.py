@@ -117,10 +117,27 @@ def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
 
     dataset = dataset.lower()
     if dataset == 'decode':
-        pqtl = pqtl[pqtl["rsids"].isin(gwas['rsid'])]
-        pqtl['chr'] = pqtl['Chrom'].str.replace('chr','')
+        if 'rsids' in pqtl.columns:
+            pqtl = pqtl[pqtl["rsids"].isin(gwas['rsid'])]
+            pqtl['chr'] = pqtl['Chrom'].str.replace('chr','')
+        else:
+            gwas['SNP'] = gwas['chr'].astype(str)+':'+gwas['pos'].astype(str)+':'+gwas['eAllele']+':'+gwas['oAllele']
+            rsid = gwas[['rsid','SNP']]
 
-        pqtl = pqtl[['chr','Pos','rsids','effectAllele','otherAllele','Pval','Beta','SE','ImpMAF','N']]
+            pqtl['SNP1'] = pqtl['CHROM'].astype(str)+':'+pqtl['GENPOS'].astype(str)+':'+pqtl['ALLELE1']+':'+pqtl['ALLELE0']
+            pqtl['SNP2'] = pqtl['CHROM'].astype(str)+':'+pqtl['GENPOS'].astype(str)+':'+pqtl['ALLELE0']+':'+pqtl['ALLELE1']
+
+            pqtl1 = pqtl[pqtl['SNP1'].isin(gwas['SNP'])]
+            pqtl1['SNP'] = pqtl['SNP1']
+            pqtl2 = pqtl[pqtl['SNP2'].isin(gwas['SNP'])]
+            pqtl2['SNP'] = pqtl['SNP2']
+
+            pqtl1 = pqtl1.merge(rsid,left_on='SNP1',right_on='SNP')
+            pqtl2 = pqtl2.merge(rsid,left_on='SNP2',right_on='SNP')
+
+            pqtl = pd.concat([pqtl1,pqtl2])
+
+            pqtl = pqtl[['chr','Pos','rsids','effectAllele','otherAllele','Pval','Beta','SE','ImpMAF','N']]
     elif dataset == 'ukb':
         gwas['SNP'] = gwas['chr'].astype(str)+':'+gwas['pos'].astype(str)+':'+gwas['eAllele']+':'+gwas['oAllele']
         rsid = gwas[['rsid','SNP']]
