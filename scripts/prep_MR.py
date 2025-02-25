@@ -120,12 +120,14 @@ def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
         if 'rsids' in pqtl.columns:
             pqtl = pqtl[pqtl["rsids"].isin(gwas['rsid'])]
             pqtl['chr'] = pqtl['Chrom'].str.replace('chr','')
-        else:
-            gwas['SNP'] = gwas['chr'].astype(str)+':'+gwas['pos'].astype(str)+':'+gwas['eAllele']+':'+gwas['oAllele']
-            rsid = gwas[['rsid','SNP']]
+        elif 'BEG_HG19' in pqtl.columns:
+            poshg19 = gwas['MarkerName'].str.split(':',expand=True)[1]
+            gwas['SNP'] = gwas['chr'].astype(str)+':'+poshg19+':'+gwas['eAllele']+':'+gwas['oAllele']
+            rsid = gwas[['rsid','SNP','Pos']]
+            rsid.columns = ['rsids','SNP','Pos']
 
-            pqtl['SNP1'] = pqtl['CHROM'].astype(str)+':'+pqtl['GENPOS'].astype(str)+':'+pqtl['ALLELE1']+':'+pqtl['ALLELE0']
-            pqtl['SNP2'] = pqtl['CHROM'].astype(str)+':'+pqtl['GENPOS'].astype(str)+':'+pqtl['ALLELE0']+':'+pqtl['ALLELE1']
+            pqtl['SNP1'] = pqtl['CHROM_HG19'].astype(str)+':'+pqtl['BEG_HG19'].astype(str)+':'+pqtl['otherAllele']+':'+pqtl['effectAllele']
+            pqtl['SNP2'] = pqtl['CHROM_HG19'].astype(str)+':'+pqtl['BEG_HG19'].astype(str)+':'+pqtl['effectAllele']+':'+pqtl['otherAllele']
 
             pqtl1 = pqtl[pqtl['SNP1'].isin(gwas['SNP'])]
             pqtl1['SNP'] = pqtl['SNP1']
@@ -137,7 +139,7 @@ def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
 
             pqtl = pd.concat([pqtl1,pqtl2])
 
-            pqtl = pqtl[['chr','Pos','rsids','effectAllele','otherAllele','Pval','Beta','SE','ImpMAF','N']]
+        pqtl = pqtl[['chr','Pos','rsids','effectAllele','otherAllele','Pval','Beta','SE','ImpMAF','N']]
     elif dataset == 'ukb':
         gwas['SNP'] = gwas['chr'].astype(str)+':'+gwas['pos'].astype(str)+':'+gwas['eAllele']+':'+gwas['oAllele']
         rsid = gwas[['rsid','SNP']]
