@@ -41,8 +41,8 @@ def run_clumping(sst,ref_path,exposure,output_header='',dataset=None,plink='plin
         snps_df = pd.read_table(snps,header=None)
         if 'RSID' in sst_df.columns:
             sst_df = sst_df[sst_df['RSID'].isin(snps_df[0])]
-        elif 'rsids' in sst_df.columns:
-            sst_df = sst_df[sst_df['rsids'].isin(snps_df[0])]
+        #elif 'rsids' in sst_df.columns:
+        #    sst_df = sst_df[sst_df['rsids'].isin(snps_df[0])]
         elif type(rsid_mappings) == str:
             rsid_mappings_df = pd.read_table(rsid_mappings)
             sst_df['SNP_ID1'] = sst_df[chrom_col].astype(str)+':'+sst_df[bp_col].astype(str)+':'+sst_df[a1_col]+':'+sst_df[a2_col]
@@ -117,29 +117,22 @@ def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
 
     dataset = dataset.lower()
     if dataset == 'decode':
-        if 'rsids' in pqtl.columns:
-            pqtl = pqtl[pqtl["rsids"].isin(gwas['rsid'])]
-            pqtl['chr'] = pqtl['Chrom'].str.replace('chr','')
-        elif 'BEG_HG19' in pqtl.columns:
-            poshg19 = gwas['MarkerName'].str.split(':',expand=True)[1]
-            gwas['SNP'] = gwas['chr'].astype(str)+':'+poshg19+':'+gwas['eAllele']+':'+gwas['oAllele']
-            rsid = gwas[['rsid','SNP','Pos']]
-            rsid.columns = ['rsids','SNP','Pos']
+        gwas['SNP'] = gwas['chr'].astype(str)+':'+gwas['pos'].astype(str)+':'+gwas['eAllele']+':'+gwas['oAllele']
+        rsid = gwas[['rsid','SNP']]
+        pqtl['SNP1'] = pqtl['Chrom'].astype(str)+':'+pqtl['Pos'].astype(str)+':'+pqtl['effectAllele']+':'+pqtl['otherAllele']
+        pqtl['SNP2'] = pqtl['Chrom'].astype(str)+':'+pqtl['Pos'].astype(str)+':'+pqtl['otherAllele']+':'+pqtl['effectAllele']
 
-            pqtl['SNP1'] = pqtl['CHROM_HG19'].astype(str)+':'+pqtl['BEG_HG19'].astype(str)+':'+pqtl['otherAllele']+':'+pqtl['effectAllele']
-            pqtl['SNP2'] = pqtl['CHROM_HG19'].astype(str)+':'+pqtl['BEG_HG19'].astype(str)+':'+pqtl['effectAllele']+':'+pqtl['otherAllele']
+        pqtl1 = pqtl[pqtl['SNP1'].isin(gwas['SNP'])]
+        pqtl1['SNP'] = pqtl['SNP1']
+        pqtl2 = pqtl[pqtl['SNP2'].isin(gwas['SNP'])]
+        pqtl2['SNP'] = pqtl['SNP2']
 
-            pqtl1 = pqtl[pqtl['SNP1'].isin(gwas['SNP'])]
-            pqtl1['SNP'] = pqtl['SNP1']
-            pqtl2 = pqtl[pqtl['SNP2'].isin(gwas['SNP'])]
-            pqtl2['SNP'] = pqtl['SNP2']
+        pqtl1 = pqtl1.merge(rsid,left_on='SNP1',right_on='SNP')
+        pqtl2 = pqtl2.merge(rsid,left_on='SNP2',right_on='SNP')
 
-            pqtl1 = pqtl1.merge(rsid,left_on='SNP1',right_on='SNP')
-            pqtl2 = pqtl2.merge(rsid,left_on='SNP2',right_on='SNP')
+        pqtl = pd.concat([pqtl1,pqtl2])
 
-            pqtl = pd.concat([pqtl1,pqtl2])
-
-        pqtl = pqtl[['chr','Pos','rsids','effectAllele','otherAllele','Pval','Beta','SE','ImpMAF','N']]
+        pqtl = pqtl[['Chrom','Pos','rsid','effectAllele','otherAllele','Pval','Beta','SE','ImpMAF','N']]
     elif dataset == 'ukb':
         gwas['SNP'] = gwas['chr'].astype(str)+':'+gwas['pos'].astype(str)+':'+gwas['eAllele']+':'+gwas['oAllele']
         rsid = gwas[['rsid','SNP']]
