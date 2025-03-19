@@ -119,9 +119,9 @@ def prep_pQTL_data(protname,dataset,pQTL_path,output_header,clumped_snps=None):
     if dataset == 'decode':
         gwas['SNP'] = gwas['chr'].astype(str)+':'+gwas['pos'].astype(str)+':'+gwas['eAllele']+':'+gwas['oAllele']
         rsid = gwas[['rsid','SNP']]
-        chromcol = pqtl['Chrom'].str.split('r',expand=True)
-        pqtl['SNP1'] = chromcol[1]+':'+pqtl['Pos'].astype(str)+':'+pqtl['effectAllele']+':'+pqtl['otherAllele']
-        pqtl['SNP2'] = chromcol[1]+':'+pqtl['Pos'].astype(str)+':'+pqtl['otherAllele']+':'+pqtl['effectAllele']
+        pqtl['Chrom'] = pqtl['Chrom'].str.split('chr',expand=True)[1]
+        pqtl['SNP1'] = pqtl['Chrom']+':'+pqtl['Pos'].astype(str)+':'+pqtl['effectAllele']+':'+pqtl['otherAllele']
+        pqtl['SNP2'] = pqtl['Chrom']+':'+pqtl['Pos'].astype(str)+':'+pqtl['otherAllele']+':'+pqtl['effectAllele']
 
         pqtl1 = pqtl[pqtl['SNP1'].isin(gwas['SNP'])]
         pqtl1['SNP'] = pqtl1['SNP1']
